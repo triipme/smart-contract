@@ -28,4 +28,20 @@ On top of that, we’re contributing 1% of each booking conducted on Triip to a 
 * `truffle test --network test`
 
 # Deploy
-* `MNEMONIC="{your seed word}" truffle migrate --network rinkeby --reset` : you need MNEMONIC to deploy to Rinkeby - note: wallet from your seed word must have ETH for deploying
+* `cp .env.sample .env`: duplicate env
+* fill init params for TRC21 contract:
+* `export $(cat .env)`: export env vars
+* `truffle migrate --network <network> --reset`
+
+### env vars:
+
+```
+MNEMONIC: seed words or private key of owner address, it must have ETH for deploying
+COMMUNITY_RESERVE_WALLET: community reserve wallet address
+CROWD_FUND_WALLET: crowd fund wallet address
+ECO_WALLET: eco wallet address
+COMPANY_WALLET: company wallet address
+TEAM_WALLET: team wallet address
+FOUNDER_WALLET: founder wallet address
+FEE_SCHEME: fee scheme of trc21 contract
+```
