@@ -20,18 +20,16 @@ module.exports = {
       network_id: "*"
     },
     tomotestnet: {
-      provider: () => {
-        return new HDWalletProvider(
-          mnemonic,
-          "https://testnet.tomochain.com",
-          0,
-          1,
-          true,
-          "m/44'/889'/0'/0/",
-        );
-      },
+      provider: () => new HDWalletProvider(
+        mnemonic,
+        "https://testnet.tomochain.com",
+        0,
+        1,
+        true,
+        "m/44'/889'/0'/0/",
+      ),
       network_id: 89,
-      gas: 2000000,
+      gas: 4901930,
       gasPrice: 10000000000000
     },
     tomomainnet: {

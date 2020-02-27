@@ -1,7 +1,57 @@
 pragma solidity >=0.4.25 <0.7.0;
 
-import "./SafeMath.sol";
-import "./Ownable.sol";
+// File: openzeppelin-solidity/contracts/math/SafeMath.sol
+
+/**
+ * @title SafeMath
+ * @dev Math operations with safety checks that throw on error
+ */
+library SafeMath {
+
+  /**
+  * @dev Multiplies two numbers, throws on overflow.
+  */
+  function mul(uint256 _a, uint256 _b) internal pure returns (uint256 c) {
+    // Gas optimization: this is cheaper than asserting 'a' not being zero, but the
+    // benefit is lost if 'b' is also tested.
+    // See: https://github.com/OpenZeppelin/openzeppelin-solidity/pull/522
+    if (_a == 0) {
+      return 0;
+    }
+
+    c = _a * _b;
+    assert(c / _a == _b);
+    return c;
+  }
+
+  /**
+  * @dev Integer division of two numbers, truncating the quotient.
+  */
+  function div(uint256 _a, uint256 _b) internal pure returns (uint256) {
+    // assert(_b > 0); // Solidity automatically throws when dividing by 0
+    // uint256 c = _a / _b;
+    // assert(_a == _b * c + _a % _b); // There is no case in which this doesn't hold
+    return _a / _b;
+  }
+
+  /**
+  * @dev Subtracts two numbers, throws on overflow (i.e. if subtrahend is greater than minuend).
+  */
+  function sub(uint256 _a, uint256 _b) internal pure returns (uint256) {
+    assert(_b <= _a);
+    return _a - _b;
+  }
+
+  /**
+  * @dev Adds two numbers, throws on overflow.
+  */
+  function add(uint256 _a, uint256 _b) internal pure returns (uint256 c) {
+    c = _a + _b;
+    assert(c >= _a);
+    return c;
+  }
+}
+
 
 /**
  * @title ITRC21
@@ -44,7 +94,7 @@ contract TRC21 is ITRC21 {
   using SafeMath for uint256;
 
   mapping (address => uint256) private _balances;
-  uint256 private _minFee;
+  uint256 private _feePercentage;
   address private _issuer;
   mapping (address => mapping (address => uint256)) private _allowed;
   uint256 private _totalSupply;
@@ -57,10 +107,10 @@ contract TRC21 is ITRC21 {
   }
 
   /**
-  * @dev The amount fee that will be lost when transferring.
+  * @dev The fee percentage that will be lost when transferring.
   */
-  function minFee() public view returns (uint256) {
-    return _minFee;
+  function feePercentage() public view returns (uint256) {
+    return _feePercentage;
   }
 
   /**
@@ -84,7 +134,7 @@ contract TRC21 is ITRC21 {
   * @param value amount tokens sent
   */
   function estimateFee(uint256 value) public view returns (uint256) {
-    return value.mul(0).add(_minFee);
+    return value.mul(_feePercentage).div(10000);
   }
 
   /**
@@ -104,13 +154,11 @@ contract TRC21 is ITRC21 {
   */
   function transfer(address to, uint256 value) public returns (bool) {
     require(to != address(0));
-    require(value <= _balances[msg.sender]);
 
     uint256 _transferFee = estimateFee(value);
-    uint256 _amountReceived = value.sub(_transferFee);
+    require((value + _transferFee) <= _balances[msg.sender]);
 
-    _transfer(msg.sender, to, _amountReceived);
-
+    _transfer(msg.sender, to, value);
     if (_transferFee > 0) {
       _transfer(msg.sender, _issuer, _transferFee);
       emit Fee(msg.sender, to, _issuer, _transferFee);
@@ -132,7 +180,7 @@ contract TRC21 is ITRC21 {
     require(spender != address(0));
 
     uint256 _transferFee = estimateFee(value);
-    require(_balances[msg.sender] >= _transferFee);
+    require(_transferFee <= _balances[msg.sender]);
 
     _allowed[msg.sender][spender] = value;
     _transfer(msg.sender, _issuer, _transferFee);
@@ -153,10 +201,10 @@ contract TRC21 is ITRC21 {
     require(value <= _allowed[from][msg.sender]);
 
     uint256 _transferFee = estimateFee(value);
-    uint256 _amountReceived = value.sub(_transferFee);
+    require((value + _transferFee) <= _balances[from]);
 
     _allowed[from][msg.sender] = _allowed[from][msg.sender].sub(value);
-    _transfer(from, to, _amountReceived);
+    _transfer(from, to, value);
     _transfer(from, _issuer, _transferFee);
     emit Fee(from, to, _issuer, _transferFee);
 
@@ -179,20 +227,6 @@ contract TRC21 is ITRC21 {
   }
 
   /**
-   * @dev Internal function that mints an amount of the token and assigns it to
-   * an account. This encapsulates the modification of balances such that the
-   * proper events are emitted.
-   * @param account The account that will receive the created tokens.
-   * @param value The amount that will be created.
-   */
-  function _mint(address account, uint256 value) internal {
-    require(account != address(0));
-    _totalSupply = _totalSupply.add(value);
-    _balances[account] = _balances[account].add(value);
-    emit Transfer(address(0), account, value);
-  }
-
-  /**
   * @dev Transfers token's foundation to new issuer
   * @param newIssuer The address to transfer ownership to.
   */
@@ -202,11 +236,29 @@ contract TRC21 is ITRC21 {
   }
 
   /**
-  * @dev Change minFee
-  * @param value minFee
+  * @dev Change feePercentage
+  * @param value feePercentage
   */
-  function _changeMinFee(uint256 value) internal {
-    _minFee = value;
+  function _changeFeePercentage(uint256 value) internal {
+    require(value <= 10000);
+    _feePercentage = value;
+  }
+
+  /**
+  * @dev set totalSupply when create contract
+  * @param value totalSupply
+  */
+  function _setTotalSupply(uint256 value) internal {
+    _totalSupply = _totalSupply.add(value);
+  }
+
+  /**
+  * @dev set Allocation when create contract
+  * @param value allocation
+  */
+  function _setAllocation(address account, uint256 value) internal {
+    _balances[account] = _balances[account].add(value);
+    emit Transfer(address(0), account, value);
   }
 }
 
@@ -217,133 +269,113 @@ contract ERC677Receiver {
 
 }
 
-interface IFeeScheme {
-
-  function estimateFee(uint256 value) external view returns (uint256);
-
-}
-
-contract TOKEN is TRC21, Ownable {
-
-  mapping (address => uint256) private _balances;
-  uint256 private _minFee;
-  address private _issuer;
-  mapping (address => mapping (address => uint256)) private _allowed;
-  uint256 private _totalSupply;
+contract TOKEN is TRC21 {
+  string private _name;
+  string private _symbol;
+  uint8  private _decimals;
 
   event Released(address indexed receiver, uint256 amount);
-  event Refund(address indexed patron_wallet, uint256 token_remaining_token);
-
-  // Token configurations
-  uint8       private constant DECIMALS = 18;
-  string      private _name = "SiroSmile";
-  string      private _symbol = "SIRO";
-  uint8       private _decimals = DECIMALS;
-  address     private _communityReserveWallet;
-  address     private _crowdFundWallet;
-  address     private _ecoWallet;
-  address     private _companyWallet;
-  address     private _teamWallet;
-  address     private _founderWallet;
-  IFeeScheme  private _feeScheme;
-
-  // Units
-  uint256    private constant TOKEN_UNIT = 10 ** DECIMALS;
-  uint256    private constant MILLION_UNIT = 10 ** 6 * TOKEN_UNIT;
-
-  // Allocation: 500,000,000 TOKEN
-  uint256    private constant COMMUNITY_RESERVE_ALLOCATION = 125 * MILLION_UNIT;  // 125,000,000 TOKEN
-  uint256    private constant CROWD_FUND_ALLOCATION = 165 * MILLION_UNIT;         // 165,000,000 TOKEN
-  uint256    private constant ECO_ALLOCATION = 75 * MILLION_UNIT;                 // 75,000,000 TOKEN
-  uint256    private constant COMPANY_ALLOCATION = 85 * MILLION_UNIT;             // 85,000,000 TOKEN
-  uint256    private constant TEAM_ALLOCATION = 50 * MILLION_UNIT;                // 50,000,000 TOKEN
+  event Refund(address indexed patronWallet, uint256 tokenRemainingToken);
+  event ReceiverCall(address indexed to, uint256 value, bytes data);
 
   // Team and Founder vesting: 50m TOKEN = 45m team members + 5m founder
-  uint256    private _vestingStartedAt = 1554051599; // March 31, 2019 23:59:59 GMT+07:00
-  uint256    private constant RELEASE_PERIOD = 30 days;
+  uint256    private _vestingStartedAt;
+  uint256    private _releasePeriod = 30 days;
 
   // Team vesting
-  uint256    private constant TEAM_MEMBERS_ALLOCATION = 45 * MILLION_UNIT; // allocate for team : 9% = 45,000,000 TOKEN
-  uint256    private _maxTeamMembersTranches = 12;                        // release team tokens 12 tranches every 30 days period = 1 year
-  uint256    private _totalTeamMembersAllocated = 0;
-  uint256    private _teamMembersTranchesReleased = 0;
+  address    private _teamWallet;
+  uint256    private _teamAllocation;
+  uint256    private _maxTeamTranches = 12; // release team tokens 12 tranches every 30 days period = 1 year
+  uint256    private _totalTeamAllocated = 0;
+  uint256    private _teamTranchesReleased = 0;
 
   // Founder vesting
-  uint256    private constant FOUNDER_ALLOCATION = 5 * MILLION_UNIT; // allocate for founder : 1% = 5,000,000 TOKEN
-  uint256    private _maxFounderTranches = 24;                       // release founder tokens 24 tranches every 30 days period = 2 years
+  address    private _founderWallet;
+  uint256    private _founderAllocation;
+  uint256    private _maxFounderTranches = 25; // release founder tokens 25 tranches every 30 days period = 2 years
   uint256    private _totalFounderAllocated = 0;
   uint256    private _founderTranchesReleased = 0;
 
-  constructor(address communityReserveWallet,
+  constructor(string  memory name,
+              string  memory symbol,
+              address communityReserveWallet,
               address crowdFundWallet,
               address ecoWallet,
               address companyWallet,
               address teamWallet,
-              address founderWallet,
-              address feeScheme
+              address founderWallet
               ) public {
 
-    _totalSupply = 500 * MILLION_UNIT;
-    _communityReserveWallet = communityReserveWallet;
-    _crowdFundWallet = crowdFundWallet;
-    _ecoWallet = ecoWallet;
-    _companyWallet = companyWallet;
     _teamWallet = teamWallet;
     _founderWallet = founderWallet;
-    _feeScheme = IFeeScheme(feeScheme);
+
+    _name = name;
+    _symbol = symbol;
+    _decimals = 18;
+    _vestingStartedAt = 1554051599; // March 31, 2019 23:59:59 GMT+07:00
 
     _changeIssuer(msg.sender);
+    _changeFeePercentage(50);
 
-    _balances[_communityReserveWallet] = _balances[_communityReserveWallet].add(COMMUNITY_RESERVE_ALLOCATION);
-    _balances[_crowdFundWallet] = _balances[_crowdFundWallet].add(CROWD_FUND_ALLOCATION);
-    _balances[_ecoWallet] = _balances[_ecoWallet].add(ECO_ALLOCATION);
-    _balances[_companyWallet] = _balances[_companyWallet].add(COMPANY_ALLOCATION);
+    uint256 millionUnit = (10 ** 18) * (10 ** 6);
+    _setTotalSupply(500 * millionUnit);                           // 500,000,000
+    _setAllocation(communityReserveWallet, 125 * millionUnit);    // 125,000,000
+    _setAllocation(crowdFundWallet, 165 * millionUnit);           // 165,000,000
+    _setAllocation(ecoWallet, 75 * millionUnit);                  //  75,000,000
+    _setAllocation(companyWallet, 85 * millionUnit);              //  85,000,000
+    _teamAllocation = 45 * millionUnit;                           //  45,000,000
+    _founderAllocation = 5 * millionUnit;                         //   5,000,000
+  }
+
+  /**
+   * @dev Throws if called by any account other than the owner.
+   */
+  modifier onlyOwner() {
+    require(msg.sender == issuer());
+    _;
   }
 
   /**
    * @return the name of the token.
    */
   function name() public view returns (string memory) {
-      return _name;
+    return _name;
   }
 
   /**
    * @return the symbol of the token.
    */
   function symbol() public view returns (string memory) {
-      return _symbol;
+    return _symbol;
   }
 
   /**
    * @return the number of decimals of the token.
    */
   function decimals() public view returns (uint8) {
-      return _decimals;
+    return _decimals;
   }
 
   /**
-   * @dev Gets estimate transaction fee base on current feeScheme.
-   * @param value amount tokens sent
+   * @return tokens of team allocation.
    */
-  function estimateFee(uint256 value) public view returns (uint256) {
-    return _feeScheme.estimateFee(value);
+  function teamAllocation() public view returns (uint256) {
+    return _teamAllocation;
   }
 
   /**
-   * @dev Gets estimate transaction fee base on current feeScheme.
-   * @param feeScheme contract defined estimateFee func
-   * @param value amount tokens sent
+   * @return tokens of founder allocation.
    */
-  function estimateFeeWithScheme(address feeScheme, uint256 value) public view returns (uint256) {
-    return IFeeScheme(feeScheme).estimateFee(value);
+  function founderAllocation() public view returns (uint256) {
+    return _founderAllocation;
   }
 
   /**
-   * @dev set fee scheme for contract, just for owner
-   * @param feeScheme contract defined estimateFee func
-   */
-  function setFeeScheme(address feeScheme) onlyOwner public {
-    _feeScheme = IFeeScheme(feeScheme);
+  * @dev Change feePercentage
+  * @param value feePercentage
+  */
+  function changeFeePercentage(uint256 value) onlyOwner public {
+    _changeFeePercentage(value);
   }
 
   /**
@@ -353,39 +385,70 @@ contract TOKEN is TRC21, Ownable {
   * @param data The extra data to be passed to the receiving contract.
   */
   function transferAndCall(address to, uint256 value, bytes memory data) public returns (bool) {
-
-    require(to != address(0));
-    require(value <= _balances[msg.sender]);
-
-    uint256 _transferFee = estimateFee(value);
-    if (_isContract(to)) {
-      _transferFee = estimateFeeWithScheme(to, value);
-    }
-    uint256 _amountReceived = value.sub(_transferFee);
-
-    _transfer(msg.sender, to, _amountReceived);
-
-    if (_transferFee > 0) {
-      _transfer(msg.sender, _issuer, _transferFee);
-      emit Fee(msg.sender, to, _issuer, _transferFee);
-    }
+    transfer(to, value);
 
     if (_isContract(to)) {
-      _contractFallback(to, value, data);
+      emit ReceiverCall(to, value, data);
+
+      ERC677Receiver receiver = ERC677Receiver(to);
+      return receiver.onTokenTransfer(msg.sender, value, data);
     }
 
     return true;
   }
 
-  function _contractFallback(address to, uint256 value, bytes memory data) private {
-    ERC677Receiver receiver = ERC677Receiver(to);
-    receiver.onTokenTransfer(msg.sender, value, data);
-  }
-
-  function _isContract(address addr) private view returns (bool hasCode) {
+  function _isContract(address addr) internal view returns (bool hasCode) {
     uint length;
     assembly { length := extcodesize(addr) }
     return length > 0;
+  }
+
+  /**
+   * @return tranche of founder allocation.
+   */
+  function calTranche(uint256 startAt, uint256 releasePeriod) public view returns (uint256) {
+    require(startAt <= now);
+    require(0 < releasePeriod);
+
+    return now.sub(startAt).div(releasePeriod);
+  }
+
+  function calReleaseAmount(uint256 allocation, uint256 maxTranches, uint256 deltaTranche) public view returns (uint256) {
+    require(0 < maxTranches);
+
+    return allocation.div(maxTranches).mul(deltaTranche);
+  }
+
+  function _releaseTokenByTranche(
+    address to,
+    uint256 startAt,
+    uint256 releasePeriod,
+    uint256 totalAllocated,
+    uint256 allocation,
+    uint256 tranchesReleased,
+    uint256 maxTranches
+  ) internal returns (uint256, uint256){
+
+    require(to != address(0));
+    require(totalAllocated < allocation);
+    require(tranchesReleased < maxTranches);
+
+    uint256 currentTranche = calTranche(_vestingStartedAt, _releasePeriod);
+    if (maxTranches < currentTranche) {
+      currentTranche = maxTranches;
+    }
+
+    if (tranchesReleased < currentTranche) {
+      uint256 deltaTranche = currentTranche - tranchesReleased;
+      uint256 releaseAmount = calReleaseAmount(allocation, maxTranches, deltaTranche);
+      _setAllocation(to, releaseAmount);
+      emit Transfer(address(0), to, releaseAmount);
+      emit Released(to, releaseAmount);
+
+      return (deltaTranche, releaseAmount);
+    }
+
+    return (0, 0);
   }
 
   /**
@@ -393,44 +456,28 @@ contract TOKEN is TRC21, Ownable {
     @return true if successful
   */
   function releaseTeamTokens() public onlyOwner returns (bool) {
-    require(_teamWallet != address(0));
-    require(_totalTeamMembersAllocated < TEAM_MEMBERS_ALLOCATION);
-    require(_teamMembersTranchesReleased < _maxTeamMembersTranches);
+    (uint256 deltaTranche, uint256 releaseAmount) = _releaseTokenByTranche( _teamWallet, _vestingStartedAt, _releasePeriod, _totalTeamAllocated, _teamAllocation, _teamTranchesReleased, _maxTeamTranches);
 
-    uint currentTranche = now.sub(_vestingStartedAt).div(RELEASE_PERIOD);
-
-    if (_teamMembersTranchesReleased < _maxTeamMembersTranches && currentTranche > _teamMembersTranchesReleased) {
-      uint256 amount = TEAM_MEMBERS_ALLOCATION.div(_maxTeamMembersTranches);
-      _balances[_teamWallet] = _balances[_teamWallet].add(amount);
-      _totalTeamMembersAllocated = _totalTeamMembersAllocated.add(amount);
-      _teamMembersTranchesReleased++;
-      emit Transfer(address(0), _teamWallet, amount);
-      emit Released(_teamWallet, amount);
+    if (releaseAmount > 0) {
+      _totalTeamAllocated = _totalTeamAllocated.add(releaseAmount);
+      _teamTranchesReleased = _teamTranchesReleased.add(deltaTranche);
     }
 
     return true;
   }
 
   /**
-    @dev Release TOKEN Token to Founder based on 24 tranches release every 30 days
+    @dev Release TOKEN Token to Founder based on 25 tranches release every 30 days
     @return true if successful
   */
   function releaseFounderTokens() public onlyOwner returns (bool) {
-    require(_founderWallet != address(0));
-    require(_totalFounderAllocated < FOUNDER_ALLOCATION);
-    require(_founderTranchesReleased < _maxFounderTranches);
+    (uint256 deltaTranche, uint256 releaseAmount) = _releaseTokenByTranche( _founderWallet, _vestingStartedAt, _releasePeriod, _totalFounderAllocated, _founderAllocation, _founderTranchesReleased, _maxFounderTranches);
 
-    uint currentTranche = now.sub(_vestingStartedAt).div(RELEASE_PERIOD);
-
-    if (_founderTranchesReleased < _maxFounderTranches && currentTranche > _founderTranchesReleased) {
-      uint256 amount = FOUNDER_ALLOCATION.div(_maxFounderTranches);
-      _balances[_founderWallet] = _balances[_founderWallet].add(amount);
-      _totalFounderAllocated = _totalFounderAllocated.add(amount);
-      _founderTranchesReleased++;
-
-      emit Transfer(address(0), _founderWallet, amount);
-      emit Released(_founderWallet, amount);
+    if (releaseAmount > 0) {
+      _totalFounderAllocated = _totalFounderAllocated.add(releaseAmount);
+      _founderTranchesReleased = _founderTranchesReleased.add(deltaTranche);
     }
+
 
     return true;
   }
