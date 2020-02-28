@@ -336,6 +336,22 @@ contract TOKEN is TRC21 {
   }
 
   /**
+   * @dev Throws if called by any account other than the teamWallet.
+   */
+  modifier onlyTeamWallet() {
+    require(msg.sender == _teamWallet);
+    _;
+  }
+
+  /**
+   * @dev Throws if called by any account other than the founderWallet.
+   */
+  modifier onlyFounderWallet() {
+    require(msg.sender == _founderWallet);
+    _;
+  }
+
+  /**
    * @return the name of the token.
    */
   function name() public view returns (string memory) {
@@ -413,7 +429,7 @@ contract TOKEN is TRC21 {
     return now.sub(startAt).div(releasePeriod);
   }
 
-  function calReleaseAmount(uint256 allocation, uint256 maxTranches, uint256 deltaTranche) public view returns (uint256) {
+  function calReleaseAmount(uint256 allocation, uint256 maxTranches, uint256 deltaTranche) public pure returns (uint256) {
     require(0 < maxTranches);
 
     return allocation.div(maxTranches).mul(deltaTranche);
@@ -433,7 +449,7 @@ contract TOKEN is TRC21 {
     require(totalAllocated < allocation);
     require(tranchesReleased < maxTranches);
 
-    uint256 currentTranche = calTranche(_vestingStartedAt, _releasePeriod);
+    uint256 currentTranche = calTranche(startAt, releasePeriod);
     if (maxTranches < currentTranche) {
       currentTranche = maxTranches;
     }
@@ -455,7 +471,7 @@ contract TOKEN is TRC21 {
     @dev Release TOKEN Token to Team based on 12 tranches release every 30 days
     @return true if successful
   */
-  function releaseTeamTokens() public onlyOwner returns (bool) {
+  function releaseTeamTokens() public onlyTeamWallet returns (bool) {
     (uint256 deltaTranche, uint256 releaseAmount) = _releaseTokenByTranche( _teamWallet, _vestingStartedAt, _releasePeriod, _totalTeamAllocated, _teamAllocation, _teamTranchesReleased, _maxTeamTranches);
 
     if (releaseAmount > 0) {
@@ -470,7 +486,7 @@ contract TOKEN is TRC21 {
     @dev Release TOKEN Token to Founder based on 25 tranches release every 30 days
     @return true if successful
   */
-  function releaseFounderTokens() public onlyOwner returns (bool) {
+  function releaseFounderTokens() public onlyFounderWallet returns (bool) {
     (uint256 deltaTranche, uint256 releaseAmount) = _releaseTokenByTranche( _founderWallet, _vestingStartedAt, _releasePeriod, _totalFounderAllocated, _founderAllocation, _founderTranchesReleased, _maxFounderTranches);
 
     if (releaseAmount > 0) {

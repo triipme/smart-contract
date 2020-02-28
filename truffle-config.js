@@ -30,7 +30,7 @@ module.exports = {
       ),
       network_id: 89,
       gas: 4901930,
-      gasPrice: 10000000000000
+      gasPrice: 20000000000000
     },
     tomomainnet: {
       provider: () => new HDWalletProvider(

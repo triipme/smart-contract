@@ -37,11 +37,41 @@ On top of that, we’re contributing 1% of each booking conducted on Triip to a 
 
 ```
 MNEMONIC: seed words or private key of owner address, it must have ETH for deploying
+TOKEN_NAME: token name
+TOKEN_SYMBOL: token symbol
 COMMUNITY_RESERVE_WALLET: community reserve wallet address
 CROWD_FUND_WALLET: crowd fund wallet address
 ECO_WALLET: eco wallet address
 COMPANY_WALLET: company wallet address
 TEAM_WALLET: team wallet address
 FOUNDER_WALLET: founder wallet address
-FEE_SCHEME: fee scheme of trc21 contract
 ```
+
+# UCD
+https://www.lucidchart.com/publicSegments/view/88905324-e47f-4ff6-8780-28534d17dbf3/image.jpeg
+
+
+# Transfer Flow
+https://www.lucidchart.com/publicSegments/view/2466a03b-e5e0-4b64-a616-d8795549f5ba/image.jpeg
+
+
+# TOMO Testnet TOMO issuer
+https://scan.testnet.tomochain.com/address/0x0e2c88753131ce01c7551b726b28bfd04e44003f#code
+
+
+## TOMO issuer code
+https://github.com/tomochain/tomoissuer
+
+
+# TOMO Testnet TRC21. token
+https://scan.testnet.tomochain.com/address/0x3a0ea94976766149d4d167678c83e63dbd76eb47#code
+
+
+# CMD:
+
+## Register TRC21 token to TOMO issuer for free TOMO gas when transfer Token
+TOKEN=<trc21_token_address> TOMO_ISSUER=<tomo_issuer_address> truffle exec cmd/applyTomoIssuer.js --network tomotestnet
+
+
+## Transfer Token
+MNEMONIC=<mnemonic> TOKEN=<trc21_token_address> TO=<receiver_address> AMOUNT=<transfer_amount> truffle exec cmd/sendToken.js --network tomotestnet
