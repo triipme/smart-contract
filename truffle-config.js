@@ -29,7 +29,7 @@ module.exports = {
         "m/44'/889'/0'/0/",
       ),
       network_id: 89,
-      gas: 4901930,
+      gas: 5000000,
       gasPrice: 20000000000000
     },
     tomomainnet: {
@@ -42,14 +42,19 @@ module.exports = {
         "m/44'/889'/0'/0/",
       ),
       network_id: 88,
-      gas: 2000000,
-      gasPrice: 10000000000000,
+      gas: 5000000,
+      gasPrice: 20000000000000
     },
     rinkeby: {
       provider: () => {
         return new HDWalletProvider(mnemonic, "https://rinkeby.infura.io/v3/4a669e46611b47b68eb4ba63089f3552");
       },
       network_id: 4
+    }
+  },
+  compilers: {
+    solc: {
+      version: "0.4.26"
     }
   }
 };

@@ -4,8 +4,7 @@ contract TestingTokenReceiver {
   event Receive(address indexed from, uint256 value, bytes data);
 
   function onTokenTransfer(address from, uint value, bytes memory data) public returns (bool success) {
-
-    require(keccak256(data) != keccak256(bytes("invalid")), "invalid");
+    require(keccak256(data) != keccak256("invalid"), "invalid");
 
     emit Receive(from, value, data);
 
