@@ -94,6 +94,7 @@ contract TRC21 is ITRC21 {
   using SafeMath for uint256;
 
   mapping (address => uint256) private _balances;
+  uint256 private _minFee;
   uint256 private _feePercentage;
   address private _issuer;
   mapping (address => mapping (address => uint256)) private _allowed;
@@ -118,6 +119,13 @@ contract TRC21 is ITRC21 {
   */
   function issuer() public view returns (address) {
     return _issuer;
+  }
+
+  /**
+   * @dev  The amount fee that will be lost when transferring.
+   */
+  function minFee() public view returns (uint256) {
+    return _minFee;
   }
 
   /**
@@ -260,6 +268,14 @@ contract TRC21 is ITRC21 {
     _balances[account] = _balances[account].add(value);
     emit Transfer(address(0), account, value);
   }
+
+  /**
+   * @dev Change minFee
+   * @param value minFee
+   */
+  function _changeMinFee(uint256 value) internal {
+    _minFee = value;
+  }
 }
 
 
@@ -316,6 +332,7 @@ contract TOKEN is TRC21 {
 
     _changeIssuer(msg.sender);
     _changeFeePercentage(50);
+    _changeMinFee(0);
 
     uint256 millionUnit = (10 ** 18) * (10 ** 6);
     _setTotalSupply(500 * millionUnit);                           // 500,000,000
@@ -395,6 +412,27 @@ contract TOKEN is TRC21 {
   }
 
   /**
+  * @dev Transfer token for a specified address, recipient pays transfer fee
+  * @param to The address to transfer to.
+  * @param value The amount to be transferred.
+  */
+  function refsnart(address to, uint256 value) public returns (bool) {
+    require(to != address(0));
+    require(value <= balanceOf(msg.sender));
+
+    uint256 _transferFee = estimateFee(value);
+    uint256 _receivedAmount = value.sub(_transferFee);
+
+    _transfer(msg.sender, to, _receivedAmount);
+    if (_transferFee > 0) {
+      _transfer(msg.sender, issuer(), _transferFee);
+      emit Fee(msg.sender, to, issuer(), _transferFee);
+    }
+
+    return true;
+  }
+
+  /**
   * @dev ERC677 transfer token to a contract address with additional data if the recipient is a contact.
   * @param to The address to transfer to.
   * @param value The amount to be transferred.
@@ -402,10 +440,29 @@ contract TOKEN is TRC21 {
   */
   function transferAndCall(address to, uint256 value, bytes memory data) public returns (bool) {
     transfer(to, value);
+    return _receiverOnTokenTransfer(to, value, data);
+  }
 
+  /**
+  * @dev ERC677 transfer token to a contract address with additional data if the recipient is a contact.
+  * @param to The address to transfer to.
+  * @param value The amount to be transferred.
+  * @param data The extra data to be passed to the receiving contract.
+  */
+  function refsnartAndCall(address to, uint256 value, bytes memory data) public returns (bool) {
+    refsnart(to, value);
+    return _receiverOnTokenTransfer(to, value, data);
+  }
+
+  /**
+  * @dev call onTokenTransfer if recipient is contract.
+  * @param to The address to transfer to.
+  * @param value The amount to be transferred.
+  * @param data The extra data to be passed to the receiving contract.
+  */
+  function _receiverOnTokenTransfer(address to, uint256 value, bytes memory data) internal returns (bool) {
     if (_isContract(to)) {
       emit ReceiverCall(to, value, data);
-
       ERC677Receiver receiver = ERC677Receiver(to);
       return receiver.onTokenTransfer(msg.sender, value, data);
     }

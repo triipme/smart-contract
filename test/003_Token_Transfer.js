@@ -18,7 +18,7 @@ contract('Token tranfer', (accounts) => {
         );
       }));
 
-  it("should add 3 tokens to toAddress, sub 3 tokens of fromAddress and add 0.015 tokens fee to issuerAddress when call transfer with 3 ether", () =>
+  it("should add 3 tokens to toAddress, sub 3.015 tokens of fromAddress and add 0.015 tokens fee to issuerAddress when call transfer with 3 ether", () =>
     Token.deployed()
       .then(instance => {
         localInstance = instance
