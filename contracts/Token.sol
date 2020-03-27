@@ -285,7 +285,7 @@ contract ERC677Receiver {
 
 }
 
-contract TOKEN is TRC21 {
+contract TIIM is TRC21 {
   string private _name;
   string private _symbol;
   uint8  private _decimals;

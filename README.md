@@ -57,7 +57,7 @@ FOUNDER_WALLET: account address at index 9
 	* Run cmd `cp .env.sample .env`: duplicate env
 	* fill env vars for TRC21 contract
 	* Run cmd `export $(cat .env)`: export env vars
-* Run cmd `truffle migrate --network tomotestnet --reset`: deploy contract on TOMO testnet, it takes about 48 TOMO
+* Run cmd `truffle migrate --network tomotestnet --reset`: deploy contract on TOMO testnet, it takes about 52 TOMO
 * Run cmd `TOKEN=<token address deployed> TOMO_ISSUER=0x0e2c88753131ce01c7551b726b28bfd04e44003f AMOUNT=10 truffle exec cmd/applyTomoIssuer.js --network tomotestnet`: register token address with 10 TOMO deposit to tomoIssuer contract
 
 #### env vars:
@@ -79,7 +79,7 @@ FOUNDER_WALLET: founder wallet address
 	* fill env vars for TRC21 contract
 	* Run cmd `export $(cat .env)`: export env vars
 * Run cmd `truffle migrate --network tomomainnet --reset`: deploy contract on TOMO testnet, it takes about 48 TOMO
-* Run cmd `TOKEN=<token address deployed> TOMO_ISSUER=<tomoIssuer address> AMOUNT=<deposit amount> truffle exec cmd/applyTomoIssuer.js --network tomomainnet`: register token address with deposit amount to tomoIssuer contract
+* Run cmd `TOKEN=<token address deployed> TOMO_ISSUER=0x8c0faeb5c6bed2129b8674f262fd45c4e9468bee AMOUNT=<deposit amount> truffle exec cmd/applyTomoIssuer.js --network tomomainnet`: register token address with deposit amount to tomoIssuer contract
 
 #### env vars:
 ```
@@ -92,6 +92,30 @@ ECO_WALLET: eco wallet address
 COMPANY_WALLET: company wallet address
 TEAM_WALLET: team wallet address
 FOUNDER_WALLET: founder wallet address
+```
+
+
+## Token address:
+
+#### Tomo testnet:
+```
+Token name: SiroSmile21
+Token symbol: SIRO21
+Community address: 0x6a86DDfCabe6789CCcd2673A080195b48ed7D8a5
+Crowd address: 0x6a86DDfCabe6789CCcd2673A080195b48ed7D8a5
+Eco address: 0x6a86DDfCabe6789CCcd2673A080195b48ed7D8a5
+Company address: 0x6a86DDfCabe6789CCcd2673A080195b48ed7D8a5
+Team address: 0x6a86DDfCabe6789CCcd2673A080195b48ed7D8a5
+Founder address: 0x6a86DDfCabe6789CCcd2673A080195b48ed7D8a5
+Issuer address: 0x6a86DDfCabe6789CCcd2673A080195b48ed7D8a5
+Token address: 0x543bae08844ae7ece8aaf2241bd906eb13d3d3f2
+Token deploy tx: 0x956a4fb8ee25e5f1333bf33945df2c01421cbede6c621ba1e06d9e9fc2627875
+```
+
+#### Tomo mainnet:
+```
+Issuer: ???
+Token address: ???
 ```
 
 
@@ -116,18 +140,17 @@ FOUNDER_WALLET: founder wallet address
 ## Refs:
 ##### TOMO networks
 `https://docs.tomochain.com/general/networks/`
+`https://docs.tomochain.com/developer-guide/working-with-tomochain/tomochain-mainnet#useful-smart-contract-addresses`
 
-##### TOMO Testnet TOMO issuer
-`https://scan.testnet.tomochain.com/address/0x0e2c88753131ce01c7551b726b28bfd04e44003f#code`
+##### TOMO issuer
+Testnet: `https://scan.testnet.tomochain.com/address/0x0e2c88753131ce01c7551b726b28bfd04e44003f#code`
+Mainnet: `https://scan.tomochain.com/address/0x8c0faeb5c6bed2129b8674f262fd45c4e9468bee`
+Code: `https://github.com/tomochain/tomoissuer`
 
-
-##### TOMO issuer code
-`https://github.com/tomochain/tomoissuer`
-
-
-##### TOMO Testnet TRC21 token
-`https://scan.testnet.tomochain.com/address/0x3a0ea94976766149d4d167678c83e63dbd76eb47#code`
+##### TRC21 TIIM
+Testnet: `https://scan.testnet.tomochain.com/address/0x543bae08844ae7ece8aaf2241bd906eb13d3d3f2`
+Mainnet: `waiting to deploy`
 
 
 docker run --rm -v $(pwd):/root ethereum/solc:0.4.26 --abi /root/contracts/Token.sol -o /root/build/contracts --overwrite
-docker run --rm -v $(pwd):/root ethereum/client-go:alltools-latest abigen --abi=/root/build/contracts/TOKEN.abi --pkg=contract --out=/root/build/contracts/token.go
+docker run --rm -v $(pwd):/root ethereum/client-go:alltools-latest abigen --abi=/root/build/contracts/TIIM.abi --pkg=contract --out=/root/build/contracts/token.go
