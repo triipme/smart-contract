@@ -127,3 +127,7 @@ FOUNDER_WALLET: founder wallet address
 
 ##### TOMO Testnet TRC21 token
 `https://scan.testnet.tomochain.com/address/0x3a0ea94976766149d4d167678c83e63dbd76eb47#code`
+
+
+docker run --rm -v $(pwd):/root ethereum/solc:0.4.26 --abi /root/contracts/Token.sol -o /root/build/contracts --overwrite
+docker run --rm -v $(pwd):/root ethereum/client-go:alltools-latest abigen --abi=/root/build/contracts/TOKEN.abi --pkg=contract --out=/root/build/contracts/token.go
