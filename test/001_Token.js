@@ -1,5 +1,5 @@
 const env = require("../lib/env.js");
-const Token = artifacts.require("Token");
+const Token = artifacts.require("Tiim");
 
 contract('Token init', (accounts) => {
   it("should set name is " + env.TOKEN_NAME, () =>

@@ -1,6 +1,6 @@
 pragma solidity >=0.4.25 <0.7.0;
 
-import "./Token.sol";
+import "./Tiim.sol";
 
 contract TestingTokenRelease is TRC21 {
   string private _name;

@@ -1,6 +1,6 @@
 const BN = require('bn.js');
 const env = require("../lib/env.js");
-const Token = artifacts.require("Token");
+const Token = artifacts.require("Tiim");
 
 contract('Token refsnart', (accounts) => {
   it("changes feePercentage is 0.5%", () =>
