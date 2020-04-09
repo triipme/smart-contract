@@ -30,6 +30,10 @@ module.exports = function(callback) {
   .on('receipt', function(receipt){
     console.log('receipt', receipt);
     return;
+  })
+  .on('error', function(error){
+    console.log('error', error);
+    return;
   });
   // .on('confirmation', function(confirmationNumber, receipt){
   //   console.log('confirmationNumber', confirmationNumber, 'receipt', receipt);

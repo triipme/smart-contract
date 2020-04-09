@@ -2,8 +2,11 @@ const env = require("../lib/env.js");
 const Token = artifacts.require("Tiim");
 const TestingTokenReceiver = artifacts.require("TestingTokenReceiver");
 const TestingTokenRelease = artifacts.require("TestingTokenRelease");
+// const TestingIncreasement = artifacts.require("TestingIncreasement");
 
 module.exports = function(deployer) {
+  // deployer.deploy(TestingIncreasement);
+
   deployer.deploy(
     Token,
     env.TOKEN_NAME,

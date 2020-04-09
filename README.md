@@ -114,8 +114,17 @@ Token deploy tx: 0x956a4fb8ee25e5f1333bf33945df2c01421cbede6c621ba1e06d9e9fc2627
 
 #### Tomo mainnet:
 ```
-Issuer: ???
-Token address: ???
+Token name: TriipMiles
+Token symbol: TIIM
+Community address: 0x8D0d19f55D57d38B42f25149652fE7fcab77C036
+Crowd address: 0x2656c55dbeAc8102eB13Ec8f965a996361d5CbcA
+Eco address: 0x581b06cAFF0C93eC6d0dd0777B493e8fC874e3ca
+Company address: 0x6508413C8aCf352f71760f242E0ea4BEC0fCd831
+Team address: 0xf1850B4FA06b8b341168d100c17FD3978585D9fd
+Founder address: 0x3C6F467Fc1C9E389Be557140136730e4C3f99F00
+Issuer address: 0x31Edb6BFb7c9FE6E25D40D7A1831F53532C2E289
+Token address: 0x3c6475f8b4200e0a6acf5aeb2b44b769a3d37216
+Token deploy tx: 0xe272a57b00fa7323c3974dadc055ea09c1b49b37fff1ee202a801ac3b7caa511
 ```
 
 
@@ -135,6 +144,12 @@ Token address: ???
 
 ##### Transfer Token:
 `MNEMONIC=<mnemonic> TOKEN=<trc21_token_address> TO=<receiver_address> AMOUNT=<transfer_amount> truffle exec cmd/sendToken.js --network tomotestnet`
+
+##### Call Token approve func:
+`MNEMONIC=<mnemonic> TOKEN=<trc21_token_address> SPENDER=<receiver_address> AMOUNT=<transfer_amount> truffle exec cmd/approve.js --network tomotestnet`
+
+##### Call Token transferFrom func:
+`MNEMONIC=<mnemonic> TOKEN=<trc21_token_address> FROM=<from_address> TO=<to_address> AMOUNT=<transfer_amount> truffle exec cmd/transferFrom.js --network tomotestnet`
 
 
 ## Refs:
