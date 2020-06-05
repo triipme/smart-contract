@@ -155,17 +155,18 @@ Token deploy tx: 0xe272a57b00fa7323c3974dadc055ea09c1b49b37fff1ee202a801ac3b7caa
 ## Refs:
 ##### TOMO networks
 `https://docs.tomochain.com/general/networks/`
+
 `https://docs.tomochain.com/developer-guide/working-with-tomochain/tomochain-mainnet#useful-smart-contract-addresses`
 
 ##### TOMO issuer
-Testnet: `https://scan.testnet.tomochain.com/address/0x0e2c88753131ce01c7551b726b28bfd04e44003f#code`
-Mainnet: `https://scan.tomochain.com/address/0x8c0faeb5c6bed2129b8674f262fd45c4e9468bee`
 Code: `https://github.com/tomochain/tomoissuer`
+
+Testnet: `https://scan.testnet.tomochain.com/address/0x0e2c88753131ce01c7551b726b28bfd04e44003f#code`
+
+Mainnet: `https://scan.tomochain.com/address/0x8c0faeb5c6bed2129b8674f262fd45c4e9468bee`
 
 ##### TRC21 TIIM
 Testnet: `https://scan.testnet.tomochain.com/address/0x543bae08844ae7ece8aaf2241bd906eb13d3d3f2`
-Mainnet: `waiting to deploy`
 
+Mainnet: `https://scan.tomochain.com/address/0x3c6475f8b4200e0a6acf5aeb2b44b769a3d37216`
 
-docker run --rm -v $(pwd):/root ethereum/solc:0.4.26 --abi /root/contracts/Token.sol -o /root/build/contracts --overwrite
-docker run --rm -v $(pwd):/root ethereum/client-go:alltools-latest abigen --abi=/root/build/contracts/TIIM.abi --pkg=contract --out=/root/build/contracts/token.go
